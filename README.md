@@ -1,17 +1,20 @@
 # spotify-nowplaying
 a spotify now playing html5 canvas widget
 
-Socket.io Emit the Spotify now Playing data packet.
+Over a Socket.io connection emit the Spotify now Playing data packet in channel 'songinfo'.
 
+##example call in node.js socket.io server using spotify api
+```
 function getSpotifyNowPlaying() {
-...
       spotifyApi.getMyCurrentPlayingTrack()
         .then(function(data) {
           io.emit("songinfo", {song: data.body.item.name, artist: data.body.item.artists[0].name, album: data.body.item.album.name, image: data.body.item.album.images[0].url})
         }
-...
   }
+```
 
+##example spotify api response
+```
   {
     "timestamp": 1650506333001,
     "context": {
@@ -208,3 +211,4 @@ function getSpotifyNowPlaying() {
     },
     "is_playing": true
   }
+```
