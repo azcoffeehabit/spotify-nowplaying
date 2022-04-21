@@ -1,0 +1,239 @@
+<head>
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="-1">
+  <meta http-equiv="CACHE-CONTROL" content="NO-CACHE">
+</head>
+<body>
+</body>
+<script src="https://cdn.socket.io/4.0.1/socket.io.min.js" integrity="sha384-LzhRnpGmQP+lOvWruF/lgkcqD+WDVt9fU3H4BWmwP5u5LTmkUGafMcpZKNObVMLU" crossorigin="anonymous"></script>
+<script src="particles.js"></script>
+<script src="entities/movement/moves.js"></script>
+<script src="entities/entity.js"></script>
+
+<script>
+// Create WebSocket connection.
+const hostname = "http://localhost";
+const port = ":8891";
+const connection = hostname + port;
+
+const socket = new io(connection,{});
+socket.connect();
+//canvas parameters
+const w=1280;
+const h=720;
+var canvasName="ufochat";
+var timer=10;
+//const ctx;
+var fps = 20;
+var position = w + 10;
+//Game Parameters
+var drawFunctions = [];
+var e=80,i=0,p=2*Math.PI;
+var transparency = 1.0;
+var angle = 360;
+var anglespeed = 0.05;
+var step, steps = 0;
+var delay = 30;
+var rgbstep = 0;
+var compliment = "";
+var playGreeting = true;
+var textArr = new Array();
+var textObjArr = new Array();
+var textObj = [];
+var fontMin = 0;
+var fontMax = 34;
+var fontSize = 24;
+var fontType = "px Verdana italic bold";
+var scale = 1.0;
+var burnpoint = 500;
+const canvas=document.createElement('canvas');
+
+canvas.width=w;
+canvas.height=h;
+canvas.id=canvasName;
+canvas.style.position='absolute';
+canvas.style.left="0px";
+canvas.style.pointerEvents="none";
+canvas.style.top="0px";
+document.body.appendChild(canvas);
+const ctx=canvas.getContext('2d');
+
+function getRandom(max){
+  return (Math.random() * max);
+}
+
+class AlbumInfo {
+  constructor(message){
+    this.x = 1480;
+    this.y = 51;
+    this.song = message.song;
+    this.artist = message.artist;
+    this.album = message.album;
+    this.image = new Image;
+    this.image.src = message.image;
+    textObjArr.push(this);
+    console.log(this.song);
+  }
+  logic(){
+    this.angle -= this.anglespeed;
+    this.motion = (Math.abs(Math.cos(this.angle)));
+    if(this.angle <= 0.05) {
+      this.remove();
+    }
+    if(this.x > 1021){
+      let newx = this.x + Math.sin(angle/2) - 1;
+      this.x = newx;
+    }
+    else{
+      let newy = this.y + Math.sin(angle/2) + 1;
+      this.y = newy;
+    }
+  }
+  render(){
+    ctx.beginPath();
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.font = this.fontSize + fontType;
+    ctx.fillStyle = "rgba(0,0,0,50)";
+    ctx.fillRect(this.x-10, this.y-10, 220, 410);
+    ctx.fillStyle = "rgba(" + (rgbstep) + "," + 255 * transparency + "," + 0 + "," + (transparency) + ")";
+    ctx.fillText("Title: " + this.song, this.x, this.y, 200);
+    ctx.fillText("By: " + this.artist, this.x, this.y+30, 200);
+    ctx.fillText("Album: " + this.album, this.x, this.y+60, 200);
+    ctx.drawImage(this.image, this.x, this.y+90, 200, 300);
+    ctx.closePath();
+  }
+  remove(){
+    const index = textArr.indexOf(this);
+    if (index !== -1) {
+      textArr.splice(index, 1);
+      delete this;
+    }
+  }
+}
+
+Array.prototype.unique = function() {
+  return this.filter(function (value, index, self) {
+    return self.indexOf(value) === index;
+  });
+}
+
+function compareValues(key, order = 'asc') {
+  return function innerSort(a, b) {
+    if (!a.hasOwnProperty(key) || !b.hasOwnProperty(key)) {
+      // property doesn't exist on either object
+      return 0;
+    }
+
+    const varA = (typeof a[key] === 'string')
+      ? a[key].toUpperCase() : a[key];
+    const varB = (typeof b[key] === 'string')
+      ? b[key].toUpperCase() : b[key];
+
+    let comparison = 0;
+    if (varA > varB) {
+      comparison = 1;
+    } else if (varA < varB) {
+      comparison = -1;
+    }
+    return (
+      (order === 'desc') ? (comparison * -1) : comparison
+    );
+  };
+}
+
+// Connection opened`
+// Add a connect listener
+socket.on('connect',function() {
+	console.log('Client has connected to the server!');
+});
+// Add a connect listener
+socket.on('greeting',function(data) {
+  //console.log('Received a message from the server!',data);
+});
+
+socket.on('nowplaying', function(data) {
+  //console.log('Received a now playing request from the server!',data);
+});
+
+socket.on('songinfo', function(data) {
+  //console.log('Received a now playing request from the server!', JSON.stringify(data));
+  new AlbumInfo(data);
+});
+
+// Add a disconnect listener
+socket.on('disconnect',function() {
+	console.log('The client has disconnected!');
+});
+
+function returnFont(fontsize, max, min){
+  if (fontsize > max){
+    fontsize = max;
+  }
+
+  if (fontSize <= min){
+    fontSize = min;
+  }
+
+  return font = (fontsize) + fontType;
+}
+
+function Textfadeup() {
+  rgbstep++;
+  if (rgbstep < 255)
+    var t = setTimeout('Textfadeup()', 100);
+  if (rgbstep >= 255) {
+    Textfadedown();
+  }
+}
+Textfadeup();
+
+function Textfadedown() {
+  rgbstep--;
+  if (rgbstep > 80) {
+    var t = setTimeout('Textfadedown()', 100);
+  }
+  if (rgbstep <= 80) {
+    Textfadeup();
+  }
+}
+
+function logic(){
+  angle -= anglespeed;
+
+  if(angle >= 360){
+    angle = 0;
+  }
+
+  motion = (Math.abs(Math.cos(angle)));
+
+  for (let j = 0; j < textObjArr.length; j++){
+    textObjArr[j].logic();
+  }
+}
+
+//Clear screen
+drawFunctions[0] = function(){ctx.clearRect(0,0,w,h);};
+
+drawFunctions[1] = function(){
+  for (let j = 0; j < textObjArr.length; j++){
+    textObjArr[j].render();
+  }
+}
+
+function animate(animation){
+  requestAnimationFrame(animation);
+}
+
+setInterval(function(){
+  logic();
+  drawFunctions.map(animate);
+}, 15);
+
+</script>
+
+<script>
+</script>
+
+<script>
+</script>
