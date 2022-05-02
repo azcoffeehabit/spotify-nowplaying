@@ -13,7 +13,7 @@ function getSpotifyNowPlaying() {
   }
 ```
 
-##example spotify api response
+##example spotify api response body
 ```
   {
     "timestamp": 1650506333001,
